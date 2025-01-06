@@ -3,7 +3,7 @@
 <head>
 	<!-- Basic Page Info -->
 	<meta charset="utf-8">
-	<title>DeskApp - Bootstrap Admin Dashboard HTML Template</title>
+	<title>Social Book | Home</title>
 
 	<!-- Site favicon -->
 	<link rel="apple-touch-icon" sizes="180x180" href="static/images/apple-touch-icon.png">
@@ -98,7 +98,7 @@
 		 <div class="user-info">
             {% if user.is_authenticated %}
                 <span>Welcome, {{ user.username }}!</span> <!-- Display user's name -->
-                <a href="" class="btn btn-danger center">Logout</a> <!-- Logout link -->
+                <a href="/logout" class="btn btn-danger center">Logout</a> <!-- Logout link -->
             {% else %}
                 <span>Welcome, Guest!</span>
             {% endif %}
@@ -193,41 +193,13 @@
 <div class="card-box mb-30">
 				<h2 class="h4 pd-20">Uploaded Books</h2>
 				
-<table class="data-table table nowrap">
-  <thead>
-    <tr>
-      <th class="table-plus datatable-nosort">Title</th>
-      <th>Description</th>
-      <th>Visibility</th>
-      <th>Cost</th>
-      <th>Year of Publication</th>
-      <th>File</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for file in uploaded_files %}
-    <tr>
-      <td class="table-plus">
-        <h5 class="font-16">{{ file.title }}</h5>
-      </td>
-      <td>{{ file.description }}</td>
-      <td>{{ file.visibility }}</td>
-      <td>{{ file.cost }}</td>
-      <td>{{ file.year_of_publication }}</td>
-      <td><a href="{{ file.uploaded_file.url }}" target="_blank" class="btn btn-link">View File</a></td>
-      <td>
-    
-      </td>
-    </tr>
-    {% empty %}
-    <tr>
-      <td colspan="6" class="text-center">No files uploaded yet.</td>
-    </tr>
-    {% endfor %}
-</tbody>
-</table>
+ <div style="text-align: center;">
+        <a class="btn btn-primary mb-20"  onclick="checkUploadedBooks()" href="/my_books">View Books</a>
+    </div>
 
 			</div>
+
+	
 			
 			<div class="footer-wrap pd-20 mb-20 card-box">
 				Social-Book<a href="https://github.com/dropways" target="_blank"></a>
@@ -245,5 +217,33 @@
 	<script src="static/src/plugins/datatables/js/dataTables.responsive.min.js"></script>
 	<script src="static/src/plugins/datatables/js/responsive.bootstrap4.min.js"></script>
 	<script src="static/scripts/dashboard.js"></script>
+
+<script>
+    function checkUploadedBooks() {
+        // Fetch data from the API
+        fetch('/api/my-files/') // Replace with your actual API endpoint
+            .then(response => response.json()) // Parse the JSON response
+            .then(data => {
+                // Check if the 'files' array is empty
+                if (data.files.length === 0) {
+                    // Show the alert
+                    alert("No books uploaded.");
+                    
+                    // Redirect to the index page after the alert
+                    setTimeout(function () {
+                        window.location.href = '/index'; // Redirect to the home page
+                    }, 500); // Wait for 500ms before redirecting
+                } else {
+                    // If files are present, redirect to the "my_books" page
+                    window.location.href = '/my_books';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching uploaded files:', error);
+            });
+    }
+</script>
+
+
 </body>
 </html>

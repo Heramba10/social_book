@@ -6,9 +6,13 @@ import os
 
 
 class CustomUser(AbstractUser):
+    email = models.EmailField(unique=True)  # Ensure email is unique
     public_visibility = models.BooleanField(default=True)
     birth_year = models.PositiveIntegerField(null=True, blank=True)
     address = models.TextField(null=True, blank=True)
+    
+    USERNAME_FIELD = 'email'  
+    REQUIRED_FIELDS = ['username']
 
     @property
     def age(self):

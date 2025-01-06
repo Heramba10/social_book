@@ -5,8 +5,14 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from .serializers import UploadedFileSerializer
+from rest_framework.response import Response
 from .forms import UploadedFileForm
 from .models import UploadedFile
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.http import JsonResponse
 
 from .forms import CreateUserForm
 
@@ -57,21 +63,53 @@ def register(request):
 @csrf_protect
 def userlogin(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
+        email = request.POST.get('email')
         password = request.POST.get('password')
         
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, username=email, password=password)
         
         
         if user is not None:
             login(request, user)
-            return redirect('index')
+                        # Generate JWT token
+            serializer = TokenObtainPairSerializer(data={"email": email, "password": password})
+            if serializer.is_valid():
+                
+                tokens = serializer.validated_data
+                access_token = tokens['access']
+                refresh_token = tokens['refresh']
+                
+                request.session['access_token'] = access_token
+                request.session['refresh_token'] = refresh_token
+                
+                
+                response = redirect('index')
+                response.set_cookie('access_token', access_token)  # Store token in cookie if needed
+                response.set_cookie('refresh_token', refresh_token) 
+                
+                return response
+                
+            else:
+                messages.error(request, 'Token generation failed')
+                return redirect('login')  # Redirect back to login if token generation fails
+
         else:
-            messages.info(request,'Username or password is incorrect')
+            messages.error(request, 'Invalid credentials')
+            return redirect('userLogin')  # Redirect back to login on failed authentication
+
+            
+            
+            
+       
            
 
     return render(request,'login.html')
     #return HttpResponse("this is about page")
+    
+    
+def userLogout(request):
+    logout(request)
+    return redirect('userlogin')    
     
     
     
@@ -85,7 +123,18 @@ def authors_sellers(request):
     return render(request, 'authors_sellers.html', context)
 
 
+class UserFilesAPI(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
 
+    def get(self, request):
+        # Fetch uploaded files by the authenticated user
+        uploaded_files = UploadedFile.objects.filter(uploaded_by=request.user)
+        
+        # Serialize the file data
+        serializer = UploadedFileSerializer(uploaded_files, many=True)
+        
+        # Return the serialized data as a JSON response
+        return Response({"files": serializer.data})
 
 """@login_required
 def upload_books(request):
@@ -107,3 +156,21 @@ def uploaded_files(request):
     # Fetch files uploaded by the user
     user_files = UploadedFile.objects.filter(uploaded_by=request.user)
     return render(request, 'uploaded_files.html', {'user_files': user_files})"""
+    
+    
+@login_required
+def my_books(request):
+    # Check if the user has uploaded any files
+    uploaded_files = UploadedFile.objects.filter(uploaded_by=request.user)
+    
+    if uploaded_files.exists():
+        # Show the user's uploaded files in "My Books" dashboard
+        context = {'uploaded_files': uploaded_files}
+        return render(request, 'my_books.html', context)
+    else:
+        # If no files, redirect to the upload page
+        return redirect('index')  # Redirect to the upload section
+    
+    
+    
+  
