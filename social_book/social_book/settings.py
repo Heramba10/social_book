@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 import os
+from decouple import config
+
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-0bla70dx$_o@42=9(21uy=0ita(w%1u0$lzv&rc@zhbs*2#-5a'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -43,8 +46,10 @@ INSTALLED_APPS = [
     'users',
     'rest_framework',
     'rest_framework.authtoken',
-    
-]
+    'django_otp',
+    'django_otp.plugins.otp_email'
+   
+   ]
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
@@ -83,6 +88,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_otp.middleware.OTPMiddleware',
     'users.middleware.CustomAdminSessionMiddleware',
 ]
 
@@ -155,7 +161,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
-
+                       
 #added manually
 STATICFILES_DIRS = [
     BASE_DIR / "static"
@@ -173,6 +179,16 @@ ADMIN_COOKIE_NAME = 'admin_session'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+OTP_EMAIL_SENDER = config('OTP_EMAIL_SENDER') 
+OTP_EMAIL_SUBJECT = 'Your Login OTP to Social-Book Platform'  # Email subject
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 
 # Default primary key field type

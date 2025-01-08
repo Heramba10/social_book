@@ -17,11 +17,13 @@ urlpatterns = [
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),
     path('',views.userlogin, name="userlogin"),
+    path('verify-otp/', views.verify_otp, name='verify_otp'),
     path('logout',views.userLogout, name="logout"),
     path('index',views.index, name="index"),
     path('register',views.register, name="register"),
     path('authors_sellers',views.authors_sellers, name="authors_sellers"),
-    path('my_books/', views.my_books, name='my_books'), 
+    path('my_books/', views.my_books, name='my_books'),
+    path('profile/', views.profile_view, name='profile'), 
     path('api/my-files/', UserFilesAPI.as_view(), name='user-files-api')
  
 

@@ -2,7 +2,10 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from datetime import date
 from django.core.exceptions import ValidationError
+from django_otp.plugins.otp_email.models import EmailDevice
 import os
+
+
 
 
 class CustomUser(AbstractUser):
@@ -19,6 +22,10 @@ class CustomUser(AbstractUser):
         if self.birth_year:
             return date.today().year - self.birth_year
         return None
+    
+    def send_otp(self):
+        device, created = EmailDevice.objects.get_or_create(user=self)
+        return device.generate_challenge() 
 
 
 # Validator for file extension (pdf, jpeg only)
